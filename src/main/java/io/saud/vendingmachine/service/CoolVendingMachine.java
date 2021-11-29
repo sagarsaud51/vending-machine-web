@@ -2,7 +2,9 @@ package io.saud.vendingmachine.service;
 
 import io.saud.vendingmachine.constants.MessageConstants;
 import io.saud.vendingmachine.dto.AllItemsResponse;
+import io.saud.vendingmachine.dto.DisplayResponse;
 import io.saud.vendingmachine.dto.VendingResponse;
+import io.saud.vendingmachine.exception.VendingMachineException;
 import io.saud.vendingmachine.model.Item;
 import io.saud.vendingmachine.model.Transaction;
 import io.saud.vendingmachine.repo.ItemRepo;
@@ -35,33 +37,34 @@ public class CoolVendingMachine extends VendingMachineService {
     @Override
     public ResponseEntity<Object> placeOrder(String orderCode) {
         String userOrder = displayDevice.orderProduct(orderCode);
-        Item item = itemRepo.findItemByCodeEquals(orderCode);
+        Item item = itemRepo.findItemByCodeEquals(userOrder);
         if (getBalance() == 0D) {
-            displayDevice.displayMessage("Sorry! You do not have sufficient credit \nPlease add more coins/cash");
+            displayDevice.displayMessage(new DisplayResponse("Sorry! You do not have sufficient credit \nPlease add more coins/cash", getBalance(), false));
             return ResponseEntity.badRequest().build();
         }
 
         if (item == null) {
-            displayDevice.displayMessage("Order code " + orderCode + " is not found");
+            displayDevice.displayMessage(new DisplayResponse("Order code " + orderCode + " is not found", getBalance(), false));
             return ResponseEntity.badRequest().build();
         }
 
         if (getBalance() < item.getAmount()) {
-            displayDevice.displayMessage("Sorry! You do not have sufficient credit \nPlease add more coins/cash");
+            displayDevice.displayMessage(new DisplayResponse("Sorry! You do not have sufficient credit \nPlease add more coins/cash", getBalance(), false));
             return ResponseEntity.badRequest().build();
         }
 
         if (item.getStock() == 0) {
-            displayDevice.displayMessage("Sorry! " + item.getName() + " is out of stock");
+            displayDevice.displayMessage(new DisplayResponse("Sorry! " + item.getName() + " is out of stock", getBalance(), false));
             return ResponseEntity.badRequest().build();
         }
 
-        displayDevice.displayMessage("Thank you for your order!\nPlease collect your " + item.getName());
-        if (getBalance() > item.getAmount()) {
+        if (getBalance() >= item.getAmount()) {
             reduceBalance(item.getAmount());
         }
         transactionRepo.save(new Transaction(item));
         VendingResponse response = new VendingResponse(item.getName(), refund(getBalance()));
+        displayDevice.displayMessage(new DisplayResponse("Thank you for your order! Please collect your " + item.getName(), getBalance(), true));
+
         item.setStock(item.getStock() - 1);
         itemRepo.save(item);
         return ResponseEntity.ok(response);
@@ -69,15 +72,17 @@ public class CoolVendingMachine extends VendingMachineService {
 
     @Override
     public ResponseEntity<Object> loadCash(Double balance) {
+        validateAmount(balance);
         addBalance(billInserter.getAmount(balance));
-        displayDevice.displayMessage("Your available balance is now " + getBalance());
+        displayDevice.displayMessage(new DisplayResponse("Your available balance is now " + getBalance(), getBalance(), true));
         return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Object> loadCoins(Double balance) {
+        validateAmount(balance);
         addBalance(billInserter.getAmount(balance));
-        displayDevice.displayMessage("Your available balance is now " + getBalance());
+        displayDevice.displayMessage(new DisplayResponse("Your available balance is now " + getBalance(), getBalance(), true));
         return ResponseEntity.ok().build();
     }
 
@@ -90,7 +95,7 @@ public class CoolVendingMachine extends VendingMachineService {
             refund(getBalance());
             resetBalance();
         }
-        displayDevice.displayMessage(String.format(MessageConstants.CANCEL_MESSAGE, getMachineName()));
+        displayDevice.displayMessage(new DisplayResponse(String.format(MessageConstants.CANCEL_MESSAGE, getMachineName()), getBalance(), false));
         return ResponseEntity.ok().body(vendingResponse);
     }
 
@@ -104,9 +109,16 @@ public class CoolVendingMachine extends VendingMachineService {
 
     @Override
     public Double refund(Double amount) {
-        displayDevice.displayMessage(String.format(MessageConstants.RETURN_MESSAGE, amount));
+//        displayDevice.displayMessage(new DisplayResponse(String.format(MessageConstants.RETURN_MESSAGE, amount), getBalance()));
+//        resetBalance();
         return amount;
     }
 
+    private void validateAmount(Double amount) {
+        if (amount <= 0) {
+            displayDevice.displayMessage(new DisplayResponse("Invalid Amount Response", getBalance(), false));
+            throw new VendingMachineException("Invalid amount");
+        }
+    }
 
 }

@@ -29,9 +29,9 @@
         </div>
         <div class="col-md-6">
             <div class="row mt-lg-5 justify-content-center">
-                <div class="jumbotron">
-                    <h4 class="display-6">Hello, world!</h4>
-                    <p class="lead"></p>
+                <div class="jumbotron" style="background:transparent !important">
+                    <h2 class="display-6"></h2>
+                    <p class="lead" id="balance"></p>
                     <hr class="my-4">
                     <div class="btn-group-vertical ml-4 mt-4" role="group" aria-label="Basic example">
                         <div class="btn-group">
@@ -131,9 +131,9 @@
                                 </button>
                             </div>
                         </div>
-<!--                        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">-->
-<!--                            <button type="button" class="btn btn-danger" onclick="cancel()">Cancel</button>-->
-<!--                        </div>-->
+                        <!--                        <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">-->
+                        <!--                            <button type="button" class="btn btn-danger" onclick="cancel()">Cancel</button>-->
+                        <!--                        </div>-->
                     </div>
                 </div>
             </div>
@@ -155,117 +155,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
-<style>
-    .card-custom {
-        max-width: max-content;
-    }
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.4/sockjs.min.js"></script>-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>-->
 
-</style>
+<script src="/webjars/sockjs-client/sockjs.min.js"></script>
+<script src="/webjars/stomp-websocket/stomp.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<link rel="stylesheet" href="assets/main.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script type="application/javascript" src="assets/vending.js"></script>
+<script src="assets/websocket.js"></script>
 
-
-<script type="application/javascript">
-    //on init fetch the data from the server
-    // const baseUrl = "http://localhost:8080/";
-    var baseUrl;
-
-    $(document).ready(function () {
-        baseUrl = window.location.origin + '/';
-        console.log(baseUrl);
-        getInfo();
-        fetchAllItems();
-    });
-
-    function getInfo() {
-        $.ajax({
-            url: baseUrl + 'api/v1/cool/info',
-            type: 'GET',
-            success: function (data) {
-                console.log(data);
-                $('#vending-name').text(data.object);
-                $.each(data, function (index, value) {
-                    // $('#products').append('<tr><td>' + value.id + '</td><td>' + value.name + '</td><td>' + value.price + '</td><td>' + value.quantity + '</td></tr>');
-                });
-            }
-        });
-    }
-
-
-    function placeOrder(data) {
-        console.log(data);
-        console.log(data.length);
-        if (data.length !== 0) {
-            $.ajax({
-                url: baseUrl + 'api/v1/cool/order',
-                type: 'POST',
-                contentType: "application/json",
-                data: JSON.stringify({orderId: data}),
-                success: function (data) {
-                    console.log(data);
-                    fetchAllItems();
-                }
-            });
-        }
-    }
-
-
-    function addCash(data) {
-        $.ajax({
-            url: baseUrl + 'api/v1/cool/load-cash',
-            type: 'POST',
-            contentType: "application/json",
-            data: JSON.stringify({amount: data}),
-            success: function (data) {
-                console.log(data);
-            }
-        });
-    }
-
-    function addCoins(data) {
-        $.ajax({
-            url: baseUrl + 'api/v1/cool/load-cash',
-            type: 'POST',
-            contentType: "application/json",
-            data: JSON.stringify({amount: data}),
-            success: function (data) {
-                console.log(data);
-            }
-        });
-    }
-
-    function cancel(){
-        $.ajax({
-            url: baseUrl + 'api/v1/cool/cancel',
-            type: 'GET',
-            success: function (data) {
-                console.log(data);
-            }
-        });
-    }
-
-    function fetchAllItems() {
-        $('#item-body').empty();
-        $.ajax({
-            url: baseUrl + 'api/v1/cool/all-items',
-            type: 'GET',
-            success: function (data) {
-                console.log(data);
-                $.each(data, function (index, value) {
-                    $('#item-body').append(
-                        `
-                         <div class="card card-custom mx-2 mb-3">
-                            <img src="https://via.placeholder.com/150" class="card-img-top" alt="...">
-                                <div class="card-body">
-                                    <p class="card-text">Name: ${value.name}(${value.stock})<br>Code: ${value.code} <br> price: ${value.amount}</p>
-                                </div>
-                         </div>
-                        `
-                    );
-                    // $('#name'+index).append( value.name);
-                    // $('#price'+index).append( value.amount);
-                    // $('#stock'+index).append( value.stock);
-                });
-            }
-        });
-    }
-</script>
 </html>
