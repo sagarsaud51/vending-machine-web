@@ -109,8 +109,8 @@ public class CoolVendingMachine extends VendingMachineService {
 
     @Override
     public Double refund(Double amount) {
-//        displayDevice.displayMessage(new DisplayResponse(String.format(MessageConstants.RETURN_MESSAGE, amount), getBalance()));
-//        resetBalance();
+        displayDevice.displayMessage(new DisplayResponse(String.format(MessageConstants.RETURN_MESSAGE, amount), getBalance(), true));
+        resetBalance();
         return amount;
     }
 
